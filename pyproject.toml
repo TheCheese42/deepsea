@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "deepsea"
+version = "0.1.0"
+authors = [{ name = "Dominik Reinartz", email = "dominik.reinartz@proton.me" }]
+description = "Fish inside your Terminal."
+readme = "README.md"
+requires-python = ">=3.9"
+keywords = ["fish", "terminal"]
+license = { text = "MIT" }
+
+[project.optional-dependencies]
+dev = ["flake8~=7.1.1", "mypy~=1.11.2", "isort~=5.13.2"]
+
+[project.scripts]
+deepsea = "deepsea.deepsea:main"
