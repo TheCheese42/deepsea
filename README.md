@@ -1,3 +1,3 @@
 # Deepsea
 
-Fish inside your terminal.
+Fish inside your Terminal.
