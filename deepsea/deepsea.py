@@ -5,9 +5,11 @@ import time
 try:
     from .custom_types import P
     from .model import DeepObject
+    from .utils import check_overlap
 except ImportError:
     from custom_types import P
     from model import DeepObject
+    from utils import check_overlap
 
 
 class Deepsea:
@@ -15,7 +17,7 @@ class Deepsea:
         self,
         fps: int,
         spawn_rate: float,
-        color: bool = True,
+        colored: bool = True,
     ) -> None:
         self.reset()
         self.fps = fps
@@ -29,10 +31,9 @@ class Deepsea:
                 min(target_delta - (time.time() - time_before_last_update), 0)
             )
             time_before_last_update = time.time()
-            all_objects = self.update(time.time() - time_after_last_update)
+            self.update(time.time() - time_after_last_update)
             time_after_last_update = time.time()
-            self.draw(all_objects)
-            time.sleep()
+            self.draw(self.objects)
 
     def reset(self) -> None:
         self.terminal_size = self._fetch_term_size()
@@ -44,12 +45,19 @@ class Deepsea:
         t_size = os.get_terminal_size()
         return P(t_size.columns, t_size.lines)
 
-    def update(self, delta: float) -> list[DeepObject]:
+    def update(self, delta: float) -> None:
         new_term_size = self._fetch_term_size()
         if self.terminal_size != new_term_size:
             self.reset()
         for obj in self.objects:
             obj.update(delta)
+        for obj in self.objects:
+            for other in self.objects:
+                if check_overlap(
+                    obj.position, obj.get_hitbox(),
+                    other.position, other.get_hitbox(),
+                ):
+                    obj.on_collision(other)
 
     def prepare_batch(self) -> None:
         batch = [[" "] * self.terminal_size.x] * self.terminal_size.y
@@ -62,7 +70,10 @@ class Deepsea:
             for i, row in enumerate(batch):
                 if ul.y <= i <= lr.y:
                     texture_row = mt[ul.y - i]
-                    row[ul.x:lr.x + 1] = texture_row
+                    row[
+                        min(ul.x, 0):
+                        max(lr.x + 1, self.terminal_size)
+                    ] = texture_row
         self.batch = batch
         raw_rows = ["".join(row) for row in batch]
         self.raw_batch = "\n".join(raw_rows)

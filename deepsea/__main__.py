@@ -48,7 +48,7 @@ if __name__ == "__main__":
     deepsea = Deepsea(
         fps=args.fps,
         spawn_rate=args.spawn_rate,
-        color=not args.no_color,
+        colored=not args.no_color,
     )
     try:
         sys.exit(deepsea.run())
