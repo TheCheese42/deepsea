@@ -104,10 +104,10 @@ class RegularObject(DeepObject):
     def __init__(self, texture: str, terminal_size: P) -> None:
         super().__init__(texture, terminal_size)
         if random.choice((0, 1)):
-            self.position.x = -self.size.x
+            self._precise_position[0] = -self.size.x
             self.speed = random.randint(3, 10)
         else:
-            self.position.x = self._term_size
+            self._precise_position[0] = self._term_size
             self.speed = random.randint(-10, -3)
         self._precise_position[0] = random.randint(self.max_y, self.min_y)
 

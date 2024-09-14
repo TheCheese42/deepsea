@@ -9,7 +9,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 try:
     from .deepsea import Deepsea
 except ImportError:
-    from deepsea.deepsea import Deepsea
+    from deepsea import Deepsea
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(

@@ -30,7 +30,7 @@ class Deepsea:
     def run(self) -> None:
         target_delta = 1 / self.fps
         time_before_last_update = 0.0
-        time_after_last_update = 0.0
+        time_after_last_update = time.time()
         while True:
             time.sleep(
                 max(target_delta - (time.time() - time_before_last_update), 0)
@@ -44,7 +44,8 @@ class Deepsea:
         self.terminal_size = self._fetch_term_size()
         self.objects: list[DeepObject] = []
         self.batch = ""
-        from .model import RegularObject
+        # XXX
+        from model import RegularObject
         self.objects.append(RegularObject("OOO\nOOO\nOO", self.terminal_size))
 
     @staticmethod
@@ -72,7 +73,7 @@ class Deepsea:
         batch = [[" "] * self.terminal_size.x] * self.terminal_size.y
         for obj in sorted(self.objects, key=lambda x: x.layer):
             mt = obj.calc_matrix()  # matrix
-            ul: P = obj.position  # upper-left
+            ul = obj.position  # upper-left
             width = len(mt[0])
             height = len(mt)
             lr = ul + (width, height)  # lower-right
@@ -80,8 +81,8 @@ class Deepsea:
                 if ul.y <= i <= lr.y:
                     texture_row = mt[ul.y - i]
                     row[
-                        min(ul.x, 0):
-                        max(lr.x + 1, self.terminal_size.x)
+                        max(ul.x, 0):
+                        min(lr.x + 1, self.terminal_size.x)
                     ] = texture_row
         self.batch = batch
         raw_rows = ["".join(row) for row in batch]
