@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 import argparse
+import sys
+from pathlib import Path
+
+# Extensions have to import the script
+sys.path.insert(0, str(Path(__file__).parent))
 
 try:
     from .deepsea import Deepsea
 except ImportError:
-    from deepsea import Deepsea
-
-import sys
+    from deepsea.deepsea import Deepsea
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(

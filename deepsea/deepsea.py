@@ -4,10 +4,12 @@ import time
 
 try:
     from .custom_types import P
+    from .ext_loader import load_extensions
     from .model import DeepObject
     from .utils import check_overlap
 except ImportError:
     from custom_types import P
+    from ext_loader import load_extensions
     from model import DeepObject
     from utils import check_overlap
 
@@ -19,8 +21,11 @@ class Deepsea:
         spawn_rate: float,
         colored: bool = True,
     ) -> None:
+        self.object_classes = load_extensions()
         self.reset()
         self.fps = fps
+        self.spawn_rate = spawn_rate
+        self.colored = colored
 
     def run(self) -> None:
         target_delta = 1 / self.fps
@@ -28,17 +33,19 @@ class Deepsea:
         time_after_last_update = 0.0
         while True:
             time.sleep(
-                min(target_delta - (time.time() - time_before_last_update), 0)
+                max(target_delta - (time.time() - time_before_last_update), 0)
             )
             time_before_last_update = time.time()
             self.update(time.time() - time_after_last_update)
             time_after_last_update = time.time()
-            self.draw(self.objects)
+            self.draw()
 
     def reset(self) -> None:
         self.terminal_size = self._fetch_term_size()
         self.objects: list[DeepObject] = []
         self.batch = ""
+        from .model import RegularObject
+        self.objects.append(RegularObject("OOO\nOOO\nOO", self.terminal_size))
 
     @staticmethod
     def _fetch_term_size() -> P:
@@ -54,15 +61,17 @@ class Deepsea:
         for obj in self.objects:
             for other in self.objects:
                 if check_overlap(
-                    obj.position, obj.get_hitbox(),
-                    other.position, other.get_hitbox(),
+                    obj.position, obj.get_hitbox_size(),
+                    other.position, other.get_hitbox_size(),
                 ):
                     obj.on_collision(other)
+
+        self.prepare_batch()
 
     def prepare_batch(self) -> None:
         batch = [[" "] * self.terminal_size.x] * self.terminal_size.y
         for obj in sorted(self.objects, key=lambda x: x.layer):
-            mt = obj.calc_matrix(self.terminal_size)  # matrix
+            mt = obj.calc_matrix()  # matrix
             ul: P = obj.position  # upper-left
             width = len(mt[0])
             height = len(mt)
@@ -72,7 +81,7 @@ class Deepsea:
                     texture_row = mt[ul.y - i]
                     row[
                         min(ul.x, 0):
-                        max(lr.x + 1, self.terminal_size)
+                        max(lr.x + 1, self.terminal_size.x)
                     ] = texture_row
         self.batch = batch
         raw_rows = ["".join(row) for row in batch]

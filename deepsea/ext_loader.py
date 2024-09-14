@@ -1,13 +1,14 @@
 import importlib
 import os
+import platform
 import sys
 from pathlib import Path
 from typing import Iterable
 
 try:
-    from .deepsea import DeepObject
+    from .model import DeepObject
 except ImportError:
-    from deepsea import DeepObject
+    from model import DeepObject
 
 
 def load_file(file: Path) -> list[type[DeepObject]]:
@@ -39,7 +40,18 @@ def load_extensions() -> list[type[DeepObject]]:
     if str_paths:
         paths: Iterable[Path] = map(Path, str_paths.split(":"))
     else:
-        paths = [Path("~/deepsea")]  # TODO Find suitable path for this
+        paths = []
+    if platform.system() == "Linux":
+        paths.append(Path(
+            "~/.local/share/deepsea/extensions/").resolve().absolute())
+    elif platform.system() == "Darwin":
+        paths.append(Path(
+            "~/Library/Application Support/deepsea/extensions/").resolve(
+                ).absolute())
+    elif platform.system() == "Windows":
+        paths.append(Path(
+            "%APPDATA%\\deepsea\\extensions\\").resolve().absolute())
     for path in paths:
+        path.mkdir(parents=True, exist_ok=True)
         classes.extend((load_dir_recursive(path)))
     return classes
